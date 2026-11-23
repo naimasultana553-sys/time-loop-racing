@@ -1,0 +1,102 @@
+/* ================= TIME LOOP RACING — GAME / HUD ================= */
+.game-view{position:absolute;inset:0;z-index:1;background:#04060d}
+#gameCanvas{position:absolute;inset:0;width:100%;height:100%;display:block}
+.hud{position:absolute;inset:0;pointer-events:none;z-index:5;font-variant-numeric:tabular-nums}
+.hud>*{pointer-events:auto}
+.hud-top{position:absolute;top:0;left:0;right:0;display:flex;justify-content:space-between;align-items:flex-start;padding:14px 16px;gap:12px;
+  background:linear-gradient(to bottom,rgba(3,6,14,.85),transparent)}
+.hud-bottom{position:absolute;bottom:0;left:0;right:0;display:flex;align-items:flex-end;justify-content:space-between;gap:12px;padding:14px 16px;
+  background:linear-gradient(to top,rgba(3,6,14,.85),transparent)}
+.hud-panel{background:rgba(6,12,26,.68);border:1px solid rgba(90,190,255,.2);border-radius:12px;padding:9px 14px;backdrop-filter:blur(6px);min-width:120px}
+.hud-label{font-size:9px;letter-spacing:2px;color:var(--muted);margin-bottom:3px}
+.hud-value{font-size:20px;font-weight:800;letter-spacing:1px;color:#fff}
+.hud-status{font-size:10px;letter-spacing:1px;color:var(--cyan);margin-top:3px}
+.hud-center{text-align:center;min-width:190px;border-color:rgba(164,92,255,.3)}
+.hud-timer{font-size:26px;font-weight:800;letter-spacing:2px;color:#fff;text-shadow:0 0 16px rgba(34,230,255,.6)}
+.hud-delta{font-size:11px;font-weight:700;letter-spacing:1px;min-height:14px;color:var(--muted)}
+.hud-delta.faster{color:var(--green);text-shadow:0 0 10px rgba(55,245,165,.6)}
+.hud-delta.slower{color:var(--red);text-shadow:0 0 10px rgba(255,84,112,.6)}
+.hud-right{display:flex;gap:8px}
+.icon-btn{width:44px;height:44px;border-radius:11px;border:1px solid rgba(90,190,255,.3);background:rgba(6,12,26,.8);color:var(--cyan);
+  font-size:15px;font-weight:900;letter-spacing:2px;transition:.18s;backdrop-filter:blur(6px)}
+.icon-btn:hover{border-color:var(--cyan);box-shadow:0 0 18px rgba(34,230,255,.35);transform:scale(1.05)}
+.speed-panel{min-width:150px}
+.speed-readout{display:flex;align-items:baseline;gap:5px;font-size:28px;font-weight:900;line-height:1;color:#fff}
+.speed-readout small{font-size:9px;color:var(--muted);letter-spacing:1px;font-weight:400}
+.speed-bar,.nitro-bar{height:7px;border-radius:6px;background:#14203c;overflow:hidden;margin-top:7px;border:1px solid rgba(90,190,255,.15)}
+.speed-bar div{height:100%;width:0%;background:linear-gradient(90deg,var(--blue),var(--cyan));box-shadow:0 0 12px var(--cyan);transition:width .08s linear}
+.nitro-panel{min-width:190px;text-align:right}
+.nitro-bar{height:10px}
+.nitro-bar div{height:100%;width:100%;background:linear-gradient(90deg,var(--purple),var(--pink));box-shadow:0 0 14px var(--pink);transition:width .1s linear}
+.nitro-bar div.low{background:linear-gradient(90deg,#6b2140,#ff5470);box-shadow:0 0 10px var(--red)}
+.key-hint{font-size:8px;color:#7e93b5;border:1px solid #2a3a5f;border-radius:4px;padding:1px 4px;margin-left:4px}
+.lap-info{display:flex;flex-direction:column;gap:3px;text-align:center;font-size:10px;letter-spacing:1px;color:var(--muted);padding-bottom:4px}
+.lap-info b{color:#dceeff;font-weight:700;margin-left:4px}
+.lap-info span{font-size:9px}
+
+/* countdown / toast */
+.countdown{position:absolute;left:50%;top:42%;transform:translate(-50%,-50%);z-index:12;font-size:clamp(60px,14vw,150px);font-weight:900;
+  color:#fff;text-shadow:0 0 40px var(--cyan),0 0 90px var(--blue);pointer-events:none;animation:countPop .6s ease both}
+.countdown.go{color:var(--green);font-size:clamp(44px,10vw,110px);letter-spacing:8px}
+@keyframes countPop{from{opacity:0;transform:translate(-50%,-50%) scale(1.8)}to{opacity:1;transform:translate(-50%,-50%) scale(1)}}
+.toast{position:absolute;left:50%;top:22%;transform:translateX(-50%);z-index:12;padding:10px 22px;border-radius:10px;
+  background:rgba(6,12,26,.9);border:1px solid var(--cyan);color:var(--cyan);font-size:13px;font-weight:700;letter-spacing:2px;
+  box-shadow:0 0 26px rgba(34,230,255,.35);pointer-events:none;animation:toastIn .3s ease both;white-space:nowrap}
+.toast.negative{border-color:var(--red);color:var(--red);box-shadow:0 0 26px rgba(255,84,112,.35)}
+.toast.gold{border-color:#ffd35c;color:#ffd35c;box-shadow:0 0 26px rgba(255,211,92,.35)}
+@keyframes toastIn{from{opacity:0;transform:translate(-50%,-12px)}to{opacity:1;transform:translate(-50%,0)}}
+
+/* ================= TOUCH CONTROLS ================= */
+.touch-controls{display:none;position:absolute;left:0;right:0;bottom:96px;padding:0 18px;justify-content:space-between;align-items:flex-end;z-index:8}
+.touch-steer,.touch-pedals{display:flex;gap:10px}
+.touch-controls button{width:64px;height:64px;border-radius:16px;border:1px solid rgba(90,190,255,.4);background:rgba(6,14,30,.75);
+  color:var(--cyan);font-size:20px;font-weight:800;backdrop-filter:blur(6px);box-shadow:inset 0 0 14px rgba(34,230,255,.1)}
+.touch-controls button:active{background:rgba(34,230,255,.3);box-shadow:0 0 20px rgba(34,230,255,.5)}
+.touch-pedals button{font-size:12px;letter-spacing:1px}
+.touch-pedals .accel{background:rgba(34,230,255,.18);color:#fff}
+.touch-pedals .brake{color:#ff9bad;border-color:rgba(255,84,112,.4)}
+.touch-pedals .nitro-touch{color:var(--pink);border-color:rgba(255,79,216,.5)}
+body.touch .touch-controls{display:flex}
+
+/* ================= HUD POLISH ================= */
+.game-view:after{content:'';position:absolute;inset:0;pointer-events:none;z-index:4;
+  background:repeating-linear-gradient(0deg,rgba(0,0,0,.055) 0 1px,transparent 1px 3px);opacity:.6}
+.hud-panel{position:relative;background:linear-gradient(155deg,rgba(12,24,52,.86),rgba(4,9,22,.82));border:1px solid transparent;
+  clip-path:polygon(0 0,calc(100% - 13px) 0,100% 13px,100% 100%,13px 100%,0 calc(100% - 13px));
+  box-shadow:inset 0 0 0 1px rgba(90,190,255,.22),inset 0 1px 0 rgba(255,255,255,.08)}
+.hud-panel:before{content:'';position:absolute;left:0;top:0;width:64px;height:2px;background:var(--cyan);box-shadow:0 0 10px var(--cyan)}
+.hud-center:before{background:var(--purple);box-shadow:0 0 10px var(--purple)}
+.nitro-panel:before{background:var(--pink);box-shadow:0 0 10px var(--pink)}
+.hud-timer{font-family:'Bahnschrift','Segoe UI',sans-serif;letter-spacing:3px}
+.speed-readout{font-family:'Bahnschrift','Segoe UI',sans-serif;font-weight:900}
+.icon-btn{clip-path:polygon(0 0,calc(100% - 10px) 0,100% 10px,100% 100%,10px 100%,0 calc(100% - 10px));
+  box-shadow:inset 0 0 0 1px rgba(90,190,255,.25)}
+.touch-controls button{box-shadow:inset 0 1px 0 rgba(255,255,255,.15),0 5px 18px rgba(0,0,0,.4)}
+
+@media(max-width:850px){
+  .hud-top{padding:calc(6px + env(safe-area-inset-top)) 8px 8px}
+  .hud-bottom{padding:8px 8px calc(8px + env(safe-area-inset-bottom))}
+  .hud-panel{padding:6px 9px;min-width:0}
+  .hud-timer{font-size:19px}
+  .hud-value{font-size:15px}
+  .speed-readout{font-size:20px}
+  .lap-info{display:none}
+  .nitro-panel{min-width:110px}
+  .speed-panel{min-width:95px}
+  .touch-controls{bottom:calc(92px + env(safe-area-inset-bottom))}
+  .touch-controls button{width:58px;height:58px;border-radius:14px}
+}
+@media(pointer:coarse){
+  .touch-controls button{width:64px;height:64px;touch-action:none}
+  .icon-btn{width:50px;height:50px}
+}
+@media(pointer:coarse) and (orientation:landscape) and (max-height:520px){
+  .hud-top{padding:4px 6px}
+  .hud-bottom{padding:4px 6px}
+  .hud-panel{padding:4px 7px}
+  .hud-timer{font-size:16px}
+  .speed-readout{font-size:16px}
+  .touch-controls{bottom:calc(70px + env(safe-area-inset-bottom))}
+  .touch-controls button{width:52px;height:52px;font-size:16px}
+  .touch-steer,.touch-pedals{gap:6px}
+}

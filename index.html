@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#060914">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>TIME LOOP RACING — Every Lap Creates a New Rival</title>
+<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/game.css">
+</head>
+<body>
+<div id="app">
+
+  <!-- ============ GAME VIEW ============ -->
+  <div id="gameView" class="game-view hidden">
+    <canvas id="gameCanvas"></canvas>
+
+    <!-- HUD -->
+    <div id="hud" class="hud">
+      <div class="hud-top">
+        <div class="hud-panel hud-left">
+          <div class="hud-label">LAP</div>
+          <div class="hud-value"><span id="hudLap">1 / 5</span></div>
+          <div id="hudStatus" class="hud-status">RIVALS: 0</div>
+        </div>
+        <div class="hud-panel hud-center">
+          <div class="hud-label">RACE TIME</div>
+          <div id="hudTimer" class="hud-timer">00:00.00</div>
+          <div id="hudDelta" class="hud-delta">—</div>
+        </div>
+        <div class="hud-right">
+          <button id="btnPause" class="icon-btn" aria-label="Pause">II</button>
+        </div>
+      </div>
+
+      <div class="hud-bottom">
+        <div class="hud-panel speed-panel">
+          <div class="hud-label">SPEED</div>
+          <div class="speed-readout"><span id="speedVal">0</span><small>KM/H</small></div>
+          <div class="speed-bar"><div id="speedFill"></div></div>
+        </div>
+        <div class="lap-info">
+          <div><span>BEST</span> <b id="hudBest">--:--.--</b></div>
+          <div><span>PREV</span> <b id="hudPrev">--:--.--</b></div>
+          <div><span>GHOSTS</span> <b id="hudGhosts">0</b></div>
+        </div>
+        <div class="hud-panel nitro-panel">
+          <div class="hud-label">NITRO <span class="key-hint">SPACE</span></div>
+          <div class="nitro-bar"><div id="nitroFill"></div></div>
+        </div>
+      </div>
+
+      <!-- touch controls -->
+      <div id="touchControls" class="touch-controls">
+        <div class="touch-steer">
+          <button data-key="left" aria-label="Steer left">&#9664;</button>
+          <button data-key="right" aria-label="Steer right">&#9654;</button>
+        </div>
+        <div class="touch-pedals">
+          <button data-key="brake" class="brake" aria-label="Brake">BRK</button>
+          <button data-key="nitro" class="nitro-touch" aria-label="Nitro">N2O</button>
+          <button data-key="accel" class="accel" aria-label="Accelerate">GAS</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="countdown" class="countdown hidden"></div>
+    <div id="toast" class="toast hidden"></div>
+  </div>
+
+  <!-- ============ HOME ============ -->
+  <section id="screen-home" class="screen active">
+    <div class="bg-grid"></div>
+    <div class="home-glow"></div>
+    <div class="home-content">
+      <div class="logo-wrap">
+        <div class="logo-eyebrow">ARCADE RACING // v1.0</div>
+        <h1 class="logo"><span>TIME</span><span class="logo-accent">LOOP</span><span>RACING</span></h1>
+        <p class="tagline">EVERY LAP CREATES A NEW RIVAL.</p>
+      </div>
+
+      <div class="home-art">
+        <canvas id="homeArt" aria-label="Futuristic racing car with ghost rivals"></canvas>
+      </div>
+
+      <nav class="menu-buttons">
+        <button id="btnPlay" class="btn btn-primary btn-lg">PLAY <span class="btn-arrow">&#9654;</span></button>
+        <div class="menu-row">
+          <button id="btnGarage" class="btn">GARAGE</button>
+          <button id="btnTracks" class="btn">TRACK SELECT</button>
+        </div>
+        <div class="menu-row">
+          <button id="btnRecords" class="btn">RECORDS</button>
+          <button id="btnSettings" class="btn">SETTINGS</button>
+        </div>
+      </nav>
+
+      <footer class="home-stats">
+        <div><span>LEVEL</span><b id="statLevel">1</b></div>
+        <div><span>RACES</span><b id="statRaces">0</b></div>
+        <div><span>BEST LAP</span><b id="statBest">--:--.--</b></div>
+        <div><span>COINS</span><b id="statCoins">0</b></div>
+      </footer>
+    </div>
+  </section>
+
+  <!-- ============ MODE SELECT ============ -->
+  <section id="screen-mode" class="screen">
+    <div class="bg-grid"></div>
+    <div class="panel wide">
+      <div class="panel-head">
+        <button class="back-btn" data-back="home">&#8592; BACK</button>
+        <h2>SELECT MODE</h2>
+        <div class="head-spacer"></div>
+      </div>
+      <div id="modeList" class="mode-grid"></div>
+      <div class="mode-options">
+        <label class="toggle-row">
+          <input type="checkbox" id="endlessToggle">
+          <span class="toggle-switch"></span>
+          <span><b>ENDLESS TIME LOOP</b><small>Keep racing until a lap is slower than the last</small></span>
+        </label>
+        <label class="field-row">LAPS
+          <select id="modeLaps">
+            <option value="3">3 LAPS</option>
+            <option value="5" selected>5 LAPS</option>
+            <option value="8">8 LAPS</option>
+          </select>
+        </label>
+      </div>
+      <div class="panel-foot"><span class="hint">TIP: Faster laps create faster ghosts. Beat your past self.</span></div>
+    </div>
+  </section>
+
+  <!-- ============ GARAGE ============ -->
+  <section id="screen-garage" class="screen">
+    <div class="bg-grid"></div>
+    <div class="panel wide">
+      <div class="panel-head">
+        <button class="back-btn" data-back="home">&#8592; BACK</button>
+        <h2>GARAGE</h2>
+        <div class="head-spacer"></div>
+      </div>
+      <div id="carList" class="car-grid"></div>
+      <div class="color-section">
+        <div class="color-block"><h3>BODY COLOR</h3><div id="bodyColors" class="swatches"></div></div>
+        <div class="color-block"><h3>NEON COLOR</h3><div id="neonColors" class="swatches"></div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ TRACK SELECT ============ -->
+  <section id="screen-tracks" class="screen">
+    <div class="bg-grid"></div>
+    <div class="panel wide">
+      <div class="panel-head">
+        <button class="back-btn" data-back="home">&#8592; BACK</button>
+        <h2>TRACK SELECT</h2>
+        <div class="head-spacer"></div>
+      </div>
+      <div id="trackList" class="track-grid"></div>
+    </div>
+  </section>
+
+  <!-- ============ RECORDS ============ -->
+  <section id="screen-records" class="screen">
+    <div class="bg-grid"></div>
+    <div class="panel wide">
+      <div class="panel-head">
+        <button class="back-btn" data-back="home">&#8592; BACK</button>
+        <h2>RECORDS</h2>
+        <div class="head-spacer"></div>
+      </div>
+      <div id="recordsContent" class="records-content"></div>
+    </div>
+  </section>
+
+  <!-- ============ SETTINGS ============ -->
+  <section id="screen-settings" class="screen">
+    <div class="bg-grid"></div>
+    <div class="panel">
+      <div class="panel-head">
+        <button id="settingsBack" class="back-btn">&#8592; BACK</button>
+        <h2>SETTINGS</h2>
+        <div class="head-spacer"></div>
+      </div>
+      <div class="settings-body">
+        <label class="slider-row">MUSIC VOLUME <input id="musicVol" type="range" min="0" max="100" value="40"><span id="musicVal">40%</span></label>
+        <label class="slider-row">SFX VOLUME <input id="sfxVol" type="range" min="0" max="100" value="70"><span id="sfxVal">70%</span></label>
+        <label class="field-row">GRAPHICS <select id="qualitySel"><option value="low">LOW</option><option value="medium">MEDIUM</option><option value="high" selected>HIGH</option></select></label>
+        <div class="controls-guide">
+          <h3>CONTROLS</h3>
+          <div class="key-grid">
+            <span><kbd>W</kbd> / <kbd>&#8593;</kbd></span><span>Accelerate</span>
+            <span><kbd>S</kbd> / <kbd>&#8595;</kbd></span><span>Brake / Reverse</span>
+            <span><kbd>A</kbd> / <kbd>&#8592;</kbd></span><span>Steer left</span>
+            <span><kbd>D</kbd> / <kbd>&#8594;</kbd></span><span>Steer right</span>
+            <span><kbd>SPACE</kbd></span><span>Nitro boost</span>
+            <span><kbd>R</kbd></span><span>Restart race</span>
+            <span><kbd>ESC</kbd></span><span>Pause</span>
+          </div>
+        </div>
+        <button id="btnReset" class="btn btn-danger">RESET ALL PROGRESS</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ PAUSE ============ -->
+  <section id="screen-pause" class="screen overlay-screen">
+    <div class="panel narrow">
+      <h2 class="pause-title">PAUSED</h2>
+      <div class="stack">
+        <button id="btnResume" class="btn btn-primary">RESUME</button>
+        <button id="btnRestart" class="btn">RESTART RACE</button>
+        <button id="btnPauseSettings" class="btn">SETTINGS</button>
+        <button id="btnPauseMenu" class="btn btn-danger">MAIN MENU</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ ORIENTATION NOTICE ============ -->
+  <div id="rotateOverlay" class="rotate-overlay">
+    <div class="rotate-card">
+      <div class="rotate-icon">&#128241;&#8635;</div>
+      <h2>ROTATE YOUR DEVICE</h2>
+      <p>Landscape gives you the full racing view and better controls.</p>
+      <button id="rotateContinue" class="btn">CONTINUE IN PORTRAIT</button>
+    </div>
+  </div>
+
+  <!-- ============ RESULTS ============ -->
+  <section id="screen-results" class="screen overlay-screen">
+    <div class="panel results-panel">
+      <div id="resultBanner" class="result-banner">RACE COMPLETED</div>
+      <div id="resultRecord" class="result-record hidden">NEW PERSONAL RECORD!</div>
+      <div class="result-grid">
+        <div><span>TOTAL TIME</span><b id="resultTotal">--:--.--</b></div>
+        <div><span>BEST LAP</span><b id="resultBest">--:--.--</b></div>
+        <div><span>PREVIOUS LAP</span><b id="resultPrev">--:--.--</b></div>
+        <div><span>GHOSTS CREATED</span><b id="resultGhosts">0</b></div>
+        <div><span>COLLISIONS</span><b id="resultCollisions">0</b></div>
+        <div><span>SCORE</span><b id="resultScore">0</b></div>
+        <div><span>COINS EARNED</span><b id="resultCoins">0</b></div>
+        <div><span>LAST DELTA</span><b id="resultDelta">—</b></div>
+      </div>
+      <div class="result-actions">
+        <button id="btnAgain" class="btn btn-primary">RACE AGAIN</button>
+        <button id="btnNext" class="btn">NEXT TRACK</button>
+        <button id="btnResultGarage" class="btn">GARAGE</button>
+        <button id="btnResultMenu" class="btn">MAIN MENU</button>
+      </div>
+    </div>
+  </section>
+
+</div>
+<script type="module" src="js/main.js"></script>
+</body>
+</html>
